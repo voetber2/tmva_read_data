@@ -14,7 +14,7 @@
                                                                                 
 #include "Higgs2diphoton.hh"                                                    
                                                                                 
-using namespace std;                                                            
+using namespace std;       
                                                                                 
 Higgs2diphoton Hdecay;                                                          
                                                                                 
@@ -209,7 +209,10 @@ int main(){
     select &= (photon1.Pt()>.35*higgs.M());                                     
     select &= (photon2.Pt()>.25*higgs.M());                                     
     //Delta R                                                                   
-    select &= (photon2.DeltaR(jet)>.4);  
+    select &= (photon2.DeltaR(jet)>.4);
+    //Jet Cuts 
+    select &= (jet.Pt()>30); 
+    select &= (jet.Rapidity()<4.4);   
 
     if (select){                                                                
       s = (abs((higgs+jet).M()));                                 
@@ -299,7 +302,10 @@ int main(){
    select &= (photon2.Pt()>.25*diphoton.M());                                  
    //Delta R                                                                   
    select &= (photon2.DeltaR(jet)>.4); 
-
+   //Jet Cuts 
+   select &= (jet.Pt()>30); 
+   select &= (jet.Rapidity()<4.4);   
+   
    if (select){                                                                
      s = (abs((diphoton+jet).M()));                                 
      yydr = (abs(diphoton.DeltaR(jet)));                             

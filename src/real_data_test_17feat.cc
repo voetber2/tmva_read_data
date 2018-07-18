@@ -90,8 +90,6 @@ int main(){
 
     cout<<jet_n<<endl;
 
-    jet.SetPtEtaPhiM(jet_pt[3], jet_eta[3], jet_phi[3], jet_m[3]); 
-
     for (int i=0; i<jet_n; ++i){  
       t_jet.SetPtEtaPhiM(jet_pt[i], jet_eta[i], jet_phi[i], jet_m[i]); 
       jets.emplace_back(t_jet);

@@ -24,6 +24,7 @@ int main(){
   
   chain_s.Add("$TMPDIR/H1.0j_GGFHT_B_6500_pt25.0_eta4.5_r100_100.root",0); 
   chain_s.Add("$TMPDIR/H1.0j_GGFHT_B_6500_pt25.0_eta4.5_r100_101.root",0); 
+  chain_s.Add("$TMPDIR/H1.0j_GGFHT_B_6500_pt25.0_eta4.5_r100_102.root",0); 
   //===============================================                            
   constexpr size_t max = 10;                                                    
   Float_t px_s[max], py_s[max], pz_s[max], E_s[max];                            
@@ -41,7 +42,7 @@ int main(){
   //==============================================                              
   //ALL THE TREES                                                               
   Float_t s, yydr, y1dr, y2dr, ptratio, y1y, y2y,jety, yydy;                    
-  Float_t y1E, y1pt, y2E, y2pt, yyE, yypt, jetE, jetpt;                         
+  Float_t y1E, y1pt, y2E, y2pt, yyE, yypt, jetE, jetpt, yyy, costhet;                         
   Float_t weights;                                                              
   //===============================================                             
   vector<TString>num;
@@ -49,10 +50,13 @@ int main(){
   num.emplace_back("100");
   num.emplace_back("150");
   num.emplace_back("200");
-  num.emplace_back("200p");
+  num.emplace_back("250");
+  num.emplace_back("300");
+  num.emplace_back("350");
+  num.emplace_back("400");
 
-  for (int i=0; i<5; ++i){
-    TString outname = "data16_pt" + num[i] + "_sig.root"; 
+  for (int i=0; i<9; ++i){
+    TString outname = "data18_pt" + num[i] + "_sig.root"; 
     TFile* out = TFile::Open(outname, "RECREATE"); 
 
     TTree* sig_train = new TTree("sigTrain", "signal");                           
@@ -81,7 +85,9 @@ int main(){
     sig_train->Branch("y2pt", &y2pt);                                             
     sig_train->Branch("yyE", &yyE);                                               
     sig_train->Branch("yypt", &yypt);                                             
-    sig_train->Branch("jetE", &jetE);                                             
+    sig_train->Branch("jetE", &jetE); 
+    sig_train->Branch("yyy", &yyy);                                              
+    sig_train->Branch("costhet", &costhet);       
                                                                                   
     sig_train->Branch("weights", &weights);  
     //                                                                            
@@ -100,14 +106,14 @@ int main(){
     sig_test->Branch("y2pt", &y2pt);                                              
     sig_test->Branch("yyE", &yyE);                                                
     sig_test->Branch("yypt", &yypt);                                              
-    sig_test->Branch("jetE", &jetE);                                              
-                                                                                  
+    sig_test->Branch("jetE", &jetE);                                                                                                                            
+    sig_test->Branch("yyy", &yyy);                                              
+    sig_test->Branch("costhet", &costhet);       
+    
     sig_test->Branch("weights", &weights);                                        
                                                                                   
     cout<<"Branches set"<<endl;                                                   
                                                                                   
-    TH1D* h_yydr = new TH1D("yydr", "yydr", 100, 0, 10); 
-    
     //==============================================                              
     const Long64_t entries_s = chain_s.GetEntries();                             
     //===============================================
@@ -115,83 +121,85 @@ int main(){
     //Signal                                                                      
     for (long j=0; j<entries_s; ++j){                                             
       chain_s.GetEntry(j);                                                       
-      TLorentzVector higgs, photon1, photon2, jet;                                
+      TLorentzVector yy, y1, y2, jet;                                
       vector<TLorentzVector> jets;                                                
       for (long i=0; i<nparticle_s; ++i){                                         
         if (kf_s[i]==25){                                                         
-          higgs.SetPxPyPzE(px_s[i],py_s[i],pz_s[i],E_s[i]);                       
+          yy.SetPxPyPzE(px_s[i],py_s[i],pz_s[i],E_s[i]);                       
         }                                                                         
         else{                                                                     
           jets.emplace_back(px_s[i],py_s[i],pz_s[i],E_s[i]);                      
         }                                                                         
       }                                                                           
                                                                                   
-      //Decay higgs                                                               
-      pair<TLorentzVector, TLorentzVector> diphoton = Hdecay(higgs);              
+      //Decay yy                                                               
+      pair<TLorentzVector, TLorentzVector> diphoton = Hdecay(yy);              
                                                                                   
       //Sort Photons                                                                            
       if (diphoton.first.Pt()>diphoton.second.Pt()){                              
-        photon1 = diphoton.first;                                                 
-        photon2 = diphoton.second;                                                
+        y1 = diphoton.first;                                                 
+        y2 = diphoton.second;                                                
       }                                                                           
       else{                                                                       
-        photon1 = diphoton.second;                                                
-        photon2 = diphoton.first;                                                 
+        y1 = diphoton.second;                                                
+        y2 = diphoton.first;                                                 
       }                                                                           
                                                                                   
       jet=jets[0]; 
       
       //Cuts
       //Mass Cut                                                                  
-      bool select = ((higgs.M()>121.)&&(higgs.M()<129.));                         
+      bool select = ((yy.M()>121.)&&(yy.M()<129.));                         
       //Rapidity Cut                                                              
-      select &= (abs(photon2.Rapidity())<2.4);                                    
-      select &= (abs(photon1.Rapidity())<2.4);                                    
+      select &= (abs(y2.Rapidity())<2.4);                                    
+      select &= (abs(y1.Rapidity())<2.4);                                    
       //PseudoRapidity Cut                                                        
-      select &= (abs(photon1.PseudoRapidity())<2.37);                             
-      select &= !(1.37<abs(photon1.PseudoRapidity()) && abs(photon1.PseudoRapidity())<1.52);
-      select &= (abs(photon2.PseudoRapidity())<2.37);                             
-      select &= !(1.37<abs(photon2.PseudoRapidity()) && abs(photon2.PseudoRapidity())<1.52);
+      select &= (abs(y1.PseudoRapidity())<2.37);                             
+      select &= !(1.37<abs(y1.PseudoRapidity()) && abs(y1.PseudoRapidity())<1.52);
+      select &= (abs(y2.PseudoRapidity())<2.37);                             
+      select &= !(1.37<abs(y2.PseudoRapidity()) && abs(y2.PseudoRapidity())<1.52);
       //Pt Cut                               
-      select &= (photon1.Pt()>.35*higgs.M());
-      select &= (photon2.Pt()>.25*higgs.M());
+      select &= (y1.Pt()>.35*yy.M());
+      select &= (y2.Pt()>.25*yy.M());
       //Delta R                             
-      select &= (photon2.DeltaR(jet)>.4);   
+      select &= (y2.DeltaR(jet)>.4);   
       //Jet Cuts                            
       select &= (jet.Pt()>30);              
       select &= (jet.Rapidity()<4.4);       
      
   
-        //Diphoton Pt cuts 
-      if (i==0){select &= (higgs.Pt()<50.);}
-      if (i==1){select &= (higgs.Pt()>50. && higgs.Pt()<100.);}
-      if (i==2){select &= (higgs.Pt()>100. && higgs.Pt()<150);}
-      if (i==3){select &= (higgs.Pt()>150. && higgs.Pt()<200);}
-      if (i==4){select &= (higgs.Pt()>200.);}  
-      
+        //Diy Pt cuts 
+      if (i==0){select &= (yy.Pt()<50.);}
+      if (i==1){select &= (yy.Pt()>50. && yy.Pt()<100.);}
+      if (i==2){select &= (yy.Pt()>100. && yy.Pt()<150);}
+      if (i==3){select &= (yy.Pt()>150. && yy.Pt()<200);}
+      if (i==4){select &= (yy.Pt()>200. && yy.Pt()<250);}                       
+      if (i==5){select &= (yy.Pt()>250. && yy.Pt()<300.);}                      
+      if (i==6){select &= (yy.Pt()>300. && yy.Pt()<350);}                       
+      if (i==7){select &= (yy.Pt()>350. && yy.Pt()<400);}                       
+      if (i==8){select &= (yy.Pt()>400.);} 
       
       if (select){                                                                
-        s = (abs((higgs+jet).M()));                                               
-        yydr = (abs(higgs.DeltaR(jet)));                                          
-        y1dr = (abs(photon1.DeltaR(jet)));                                        
-        y2dr = (abs(photon2.DeltaR(jet)));                                        
-        ptratio = (abs(photon1.Pt())/abs(photon2.Pt()));                          
-        y1y = (abs(photon1.Rapidity()));                                          
-        y2y = (abs(photon2.Rapidity()));                                          
+        s = (abs((yy+jet).M()));                                               
+        yydr = (abs(yy.DeltaR(jet)));                                          
+        y1dr = (abs(y1.DeltaR(jet)));                                        
+        y2dr = (abs(y2.DeltaR(jet)));                                        
+        ptratio = (abs(y1.Pt())/abs(y2.Pt()));                          
+        y1y = (abs(y1.Rapidity()));                                          
+        y2y = (abs(y2.Rapidity()));                                          
         jety = (abs(jet.Rapidity()));                                             
-        yydy = (abs(photon1.Rapidity()-photon2.Rapidity()));                      
+        yydy = (abs(y1.Rapidity()-y2.Rapidity()));                      
                                                                                   
-        yyE = (abs(higgs.E()));                                                   
-        y1E = (abs(photon1.E()));                                                 
-        y2E = (abs(photon2.E()));                                                 
+        yyE = (abs(yy.E()));                                                   
+        y1E = (abs(y1.E()));                                                 
+        y2E = (abs(y2.E()));                                                 
         jetE = (abs(jet.E()));                                                    
                                                                                   
-        yypt = (abs(higgs.Pt()));                                                 
-        y1pt = abs(photon1.Pt());                                                 
-        y2pt = abs(photon2.Pt());                                                 
+        yypt = (abs(yy.Pt()));                                                 
+        y1pt = abs(y1.Pt());                                                 
+        y2pt = abs(y2.Pt());                                                 
         jetpt = abs(jet.Pt());                                                    
                                             
-        h_yydr->Fill(higgs.DeltaR(jet), weight_s);         
         weights = weight_s;                                                       
         //===============================================                         
         TRandom3 *r = new TRandom3(std::chrono::system_clock::now().time_since_epoch().count());
@@ -207,7 +215,6 @@ int main(){
       }       
     }
   
-    cout<<"Set signal for "<<outname<<endl; 
     cout<<outname<<" written"<<endl; 
     out->Write(); 
     out->Close(); 

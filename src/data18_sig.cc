@@ -181,7 +181,7 @@ int main(){
       
       if (select){                                                                
         s = (abs((yy+jet).M()));                                               
-        yydr = (abs(yy.DeltaR(jet)));                                          
+        yydr = (abs(y1.DeltaR(y2)));                                          
         y1dr = (abs(y1.DeltaR(jet)));                                        
         y2dr = (abs(y2.DeltaR(jet)));                                        
         ptratio = (abs(y1.Pt())/abs(y2.Pt()));                          

@@ -157,7 +157,20 @@ int main(){
       
       //Cuts 
       //Diphoton mass 
-      bool select = ((yy.M()>121.)&&(yy.M()<129.));                    
+      bool select = ((yy.M()>121.)&&(yy.M()<129.));  
+      
+      //Diphoton Pt cuts 
+      if (i==0 && (yy.Pt()<50.)) continue;                                      
+      if (i==1 && (yy.Pt()>50. && yy.Pt()<100.)) continue;                        
+      if (i==2 && (yy.Pt()>100. && yy.Pt()<150)) continue;                     
+      if (i==3 && (yy.Pt()>150. && yy.Pt()<200)) continue;                        
+      if (i==4 && (yy.Pt()>200. && yy.Pt()<250)) continue;                      
+      if (i==5 && (yy.Pt()>250. && yy.Pt()<300)) continue;                      
+      if (i==6 && (yy.Pt()>300. && yy.Pt()<350)) continue;                        
+      if (i==7 && (yy.Pt()>350. && yy.Pt()<400)) continue;                       
+      if (i==8 && (yy.Pt()>400.)) continue;                                   
+
+
       //Rapidity Cut                                                               
       select &= (abs(y2.Rapidity())<2.4);                                     
       select &= (abs(y1.Rapidity())<2.4);                                     
@@ -175,21 +188,10 @@ int main(){
       select &= (jet.Pt()>30);                                                     
       select &= (jet.Rapidity()<4.4);                                              
                                                                                  
-      //Diphoton Pt cuts 
-      if (i==0){select &= (yy.Pt()<50.);}                                       
-      if (i==1){select &= (yy.Pt()>50. && yy.Pt()<100.);}                       
-      if (i==2){select &= (yy.Pt()>100. && yy.Pt()<150);}                       
-      if (i==3){select &= (yy.Pt()>150. && yy.Pt()<200);}                       
-      if (i==4){select &= (yy.Pt()>200. && yy.Pt()<250);}                       
-      if (i==5){select &= (yy.Pt()>250. && yy.Pt()<300.);}                      
-      if (i==6){select &= (yy.Pt()>300. && yy.Pt()<350);}                       
-      if (i==7){select &= (yy.Pt()>350. && yy.Pt()<400);}                       
-      if (i==8){select &= (yy.Pt()>400.);}                                      
-                                         
       
       if (select){                                                                
         s = (abs((yy+jet).M()));                                               
-        yydr = (abs(yy.DeltaR(jet)));                                          
+        yydr = (abs(y1.DeltaR(y2)));                                          
         y1dr = (abs(y1.DeltaR(jet)));                                        
         y2dr = (abs(y2.DeltaR(jet)));                                        
         ptratio = (abs(y1.Pt())/abs(y2.Pt()));                          
